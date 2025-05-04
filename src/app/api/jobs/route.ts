@@ -62,6 +62,10 @@ export async function PUT(req: Request) {
       }
     );
 
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ message: 'Job not found' }, { status: 404 });
+    }
+
     return NextResponse.json({ message: 'Job updated successfully' }, { status: 200 });
   } catch (error) {
     console.error('PUT /api/applications error:', error);

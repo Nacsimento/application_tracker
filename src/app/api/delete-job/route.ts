@@ -3,6 +3,10 @@ import clientPromise from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
+type error{
+
+}
+
 export async function DELETE(request: NextRequest) {
   const url = new URL(request.url)
   const id = url.searchParams.get('id')
@@ -22,7 +26,7 @@ export async function DELETE(request: NextRequest) {
     } else {
       return NextResponse.json({ message: 'Job not found' }, { status: 404 })
     }
-  } catch (error: any) {
+  } catch (error : unknown) {
     return NextResponse.json({ message: 'Error deleting job', error: error.message }, { status: 500 })
   }
 }

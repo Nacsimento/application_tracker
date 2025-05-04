@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ObjectId } from 'mongodb'
+
 import React from 'react'
 
 export default function EditJobPage({ params }: { params: { id: string } }) {

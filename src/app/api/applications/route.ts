@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 
 export async function POST(req: Request) {
   try {
-    const { firstname, lastname , phone,  email, country , city , address , info, status ,  jobId } = await req.json();
+    const { firstname, lastname , phone,  email, country , city , address , info,  jobId } = await req.json();
 
     if (!firstname || !email || !info || !lastname || !phone || !country || !city || !address || !jobId) {
       return NextResponse.json({ message: 'All fields including jobId are required' }, { status: 400 });
@@ -93,6 +93,10 @@ export async function PUT(req: Request) {
         },
       }
     );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ message: 'Applicant not found' }, { status: 404 });
+    }
 
     return NextResponse.json({ message: 'Applicant updated successfully' }, { status: 200 });
   } catch (error) {

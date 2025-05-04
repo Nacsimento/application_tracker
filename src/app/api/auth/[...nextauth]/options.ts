@@ -55,7 +55,7 @@ export const options: NextAuthOptions = {
         const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
 
         if (isPasswordCorrect) {
-          return { id: user._id.toString(), name: user.name , role: user.role || 'Allpicant'};
+          return { id: user._id.toString(), name: user.name , role: user.role || 'Applicant'};
         }
         console.log("Login failed");
         return null; // Invalid credentials
@@ -64,7 +64,7 @@ export const options: NextAuthOptions = {
   ],
 
   callbacks: {
-    async session({ session, token, user }) {
+    async session({ session, token, }) {
       if (token) {
         session.user.role = token.role as string;
       }

@@ -17,7 +17,7 @@ export default async function ApplicantsPage({ searchParams }: { searchParams: {
   // Search by name using regex
   const statusFilter = searchParams.status?.toLowerCase();
 
-const mongoQuery: any = {
+const mongoQuery = {
   $or: [
     { firstname: { $regex: query, $options: 'i' } },
     { lastname: { $regex: query, $options: 'i' } },
