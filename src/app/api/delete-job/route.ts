@@ -1,11 +1,6 @@
-// app/api/delete-job/route.ts
 import clientPromise from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
-
-type error{
-
-}
 
 export async function DELETE(request: NextRequest) {
   const url = new URL(request.url)
@@ -26,9 +21,8 @@ export async function DELETE(request: NextRequest) {
     } else {
       return NextResponse.json({ message: 'Job not found' }, { status: 404 })
     }
-  } catch (error : unknown) {
-    return NextResponse.json({ message: 'Error deleting job', error: error.message }, { status: 500 })
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ message: 'Error deleting job', error: err }, { status: 500 });
   }
 }
-
-
