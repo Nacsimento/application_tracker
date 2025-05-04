@@ -12,7 +12,7 @@ export default function EditApplicantPage({ params }: { params: { id: string } }
     status : 'Pending',
   })
 
-  const id = React.use(params)?.id;
+  const id = params.id;
 
   useEffect(() => {
     if (!id) return; // Ensure the ID is valid before fetching data
