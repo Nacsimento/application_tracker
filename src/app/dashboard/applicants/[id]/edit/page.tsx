@@ -1,11 +1,7 @@
-import EditApplicantForm from "@/components/EditApplicantForm"
+import EditApplicantForm from "@/components/EditApplicantForm";
 
-interface PageProps {
-  params: {
-    id: string
-  }
-}
+export default async function EditApplicantPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params; // ⬅️ Important in Next.js 15
 
-export default function EditApplicantPage({ params }: PageProps) {
-  return <EditApplicantForm id={params.id} />
+  return <EditApplicantForm id={id} />;
 }

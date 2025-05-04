@@ -5,39 +5,51 @@ import { auth } from '@/app/lib/auth';
 import { redirect } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 
-export default async function ApplicantsPage({ searchParams }: { searchParams: { q?: string , status?: string } }) {
+interface ApplicantQuery {
+  $or: Array<{ firstname: { $regex: string; $options: string }; lastname?: never } | { lastname: { $regex: string; $options: string }; firstname?: never }>;
+  status?: { $regex: string; $options: string };
+}
+
+interface SearchParams {
+  q?: string;
+  status?: string;
+}
+
+export default async function ApplicantsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const { q, status } = await searchParams;
+
   const session = await auth();
   if (!session) redirect('/login');
 
-  const query = searchParams.q?.toLowerCase() || '';
+  const query = q?.toLowerCase() || '';
+  const statusFilter = status?.toLowerCase();
 
   const client = await clientPromise;
   const db = client.db(process.env.MONGODB_DB || 'jobboard');
 
-  // Search by name using regex
-  const statusFilter = searchParams.status?.toLowerCase();
+  const mongoQuery: ApplicantQuery = {
+    $or: [
+      { firstname: { $regex: query, $options: 'i' } },
+      { lastname: { $regex: query, $options: 'i' } },
+    ],
+  };
+  
+  if (statusFilter) {
+    mongoQuery.status = { $regex: `^${statusFilter}$`, $options: 'i' };
+  }
 
-const mongoQuery = {
-  $or: [
-    { firstname: { $regex: query, $options: 'i' } },
-    { lastname: { $regex: query, $options: 'i' } },
-  ],
-};
+  const applicants = await db
+    .collection('Applicants')
+    .find(mongoQuery)
+    .sort({ submittedAt: -1 })
+    .toArray();
 
-if (statusFilter) {
-  mongoQuery.status = { $regex: `^${statusFilter}$`, $options: 'i' }; // case-insensitive match
-}
-
-const applicants = await db
-  .collection('Applicants')
-  .find(mongoQuery)
-  .sort({ submittedAt: -1 })
-  .toArray();
-
-
-
-
-    const AllApplications = await Promise.all(applicants.map(async (applicant) => {
+  const AllApplications = await Promise.all(
+    applicants.map(async (applicant) => {
       const job = await db.collection('jobs').findOne({ _id: applicant.jobId });
       return {
         _id: applicant._id.toString(),
@@ -52,25 +64,29 @@ const applicants = await db
             })
           : 'N/A',
         status: applicant.status || 'Pending',
-        jobTitle: job?.title || 'Unknown Job', 
+        jobTitle: job?.title || 'Unknown Job',
       };
-    }));
+    })
+  );
 
-   
-
+  // Ensure JSX is wrapped in parentheses
   return (
     <div className="p-6">
-      <div className='flex justify-between items-center mb-6'>
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold mb-4">All Applicants</h1>
-        <Link href={'/dashboard'}><button className='flex items-center gap-2 border-1 px-3 py-2 rounded-full text-[12px] cursor-pointer hover:shadow-md hover:bg-gray-100 hover:border-gray-400 transition-all duration-300'><ArrowLeft/>Back to Dashboard</button></Link>
+        <Link href={'/dashboard'}>
+          <button className="flex items-center gap-2 border-1 px-3 py-2 rounded-full text-[12px] cursor-pointer hover:shadow-md hover:bg-gray-100 hover:border-gray-400 transition-all duration-300">
+            <ArrowLeft /> Back to Dashboard
+          </button>
+        </Link>
       </div>
-      
+
       {/* Search form */}
       <form className="mb-6">
         <input
           type="text"
           name="q"
-          defaultValue={searchParams.q || ''}
+          defaultValue={q || ''}
           placeholder="Search By Name"
           className="border px-4 py-2 rounded-md"
         />
@@ -80,12 +96,8 @@ const applicants = await db
         >
           Search
         </button>
-        <div className="flex gap-2 mt-2">
-  
-</div>
-        
+        <div className="flex gap-2 mt-2"></div>
       </form>
-      
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {AllApplications.map((job) => (
@@ -98,22 +110,23 @@ const applicants = await db
               <div>Phone No: <b>{job.phone}</b></div>
               <div>Email : <b>{job.email}</b></div>
               <div>Job Applied For : <b>{job.jobTitle}</b> </div>
-              <div className={`font-semibold text-sm mt-1 
-  ${job.status === 'Approved' ? 'text-green-600' : 
-    job.status === 'Pending' ? 'text-amber-500' : 
-    job.status === 'Rejected' ? 'text-red-500' : 
-    'text-gray-600'}`}>
-  Status: {job.status}
-</div>
-                
+              <div
+                className={`font-semibold text-sm mt-1 
+                  ${job.status === 'Approved' ? 'text-green-600' : 
+                    job.status === 'Pending' ? 'text-amber-500' : 
+                    job.status === 'Rejected' ? 'text-red-500' : 
+                    'text-gray-600'}`}
+              >
+                Status: {job.status}
+              </div>
             </div>
-            <div className='flex gap-2'>
-            <Link href={`/dashboard/applicants/${job._id}`}>
-              <button className="bg-blue-700 px-3 py-2 rounded-full text-[12px] text-white mt-5 cursor-pointer">
-                See Details
-              </button>
-            </Link>
-            <DeleteApplicantButton applicantId={job._id} />
+            <div className="flex gap-2">
+              <Link href={`/dashboard/applicants/${job._id}`}>
+                <button className="bg-blue-700 px-3 py-2 rounded-full text-[12px] text-white mt-5 cursor-pointer">
+                  See Details
+                </button>
+              </Link>
+              <DeleteApplicantButton applicantId={job._id} />
             </div>
           </div>
         ))}

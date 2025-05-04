@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function ApplyPage({ params }: { params: { id: string } }) {
-  const jobId = params.id;
-
+export default function ApplyPage({ params }: { params: Promise<{ id: string }> }) {
+  const [jobId, setJobId] = useState<string>('');
   const [firstname, setFirstname] = useState('');
-  const [lastname , setLastname] = useState('')
+  const [lastname , setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
@@ -15,6 +14,16 @@ export default function ApplyPage({ params }: { params: { id: string } }) {
   const [info, setInfo] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Use useEffect to handle promise resolution
+  useEffect(() => {
+    const fetchParams = async () => {
+      const resolvedParams = await params;
+      setJobId(resolvedParams.id); // Set the jobId after resolving the promise
+    };
+
+    fetchParams();
+  }, [params]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +35,7 @@ export default function ApplyPage({ params }: { params: { id: string } }) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ firstname, lastname , phone,  email, country , city , address , info,  jobId }),
+      body: JSON.stringify({ firstname, lastname, phone, email, country, city, address, info, jobId }),
     });
 
     const data = await res.json();
@@ -37,15 +46,13 @@ export default function ApplyPage({ params }: { params: { id: string } }) {
       setFirstname('');
       setLastname('');
       setEmail('');
+      setPhone('');
       setCountry('');
       setCity('');
       setAddress('');
       setInfo('');
-      setEmail('');
-      setPhone('');
-     
     } else {
-      setStatus(`❌ Error: ${data.message}`);
+      setStatus(`❌ Error: ${data?.message || 'Something went wrong!'}`);
     }
   };
 
@@ -59,6 +66,7 @@ export default function ApplyPage({ params }: { params: { id: string } }) {
         placeholder="First Name"
         required
         className="w-full p-2 border mb-2 rounded"
+        disabled={loading}
       />
 
       <input
@@ -67,9 +75,9 @@ export default function ApplyPage({ params }: { params: { id: string } }) {
         placeholder="Last Name"
         required
         className="w-full p-2 border mb-2 rounded"
+        disabled={loading}
       />
 
-    
       <input
         type="email"
         value={email}
@@ -77,6 +85,7 @@ export default function ApplyPage({ params }: { params: { id: string } }) {
         placeholder="Your Email"
         required
         className="w-full p-2 border mb-2 rounded"
+        disabled={loading}
       />
 
       <input
@@ -86,14 +95,15 @@ export default function ApplyPage({ params }: { params: { id: string } }) {
         placeholder="Phone No"
         required
         className="w-full p-2 border mb-2 rounded"
+        disabled={loading}
       />
 
-      <select value={country} onChange={(e)=> setCountry(e.target.value)} className="w-full p-2 border mb-2 rounded">
+      <select value={country} onChange={(e) => setCountry(e.target.value)} className="w-full p-2 border mb-2 rounded" disabled={loading}>
         <option value="" disabled hidden>Country</option>
         <option value="India">India</option>
         <option value="England">England</option>
         <option value="Bangladesh">Bangladesh</option>
-        <option value="Bangladesh">USA</option>
+        <option value="USA">USA</option>
         <option value="Canada">Canada</option>
       </select>
 
@@ -104,23 +114,26 @@ export default function ApplyPage({ params }: { params: { id: string } }) {
         placeholder="City"
         required
         className="w-full p-2 border mb-2 rounded"
+        disabled={loading}
       />
 
-    <input
+      <input
         type='text'
         value={address}
         onChange={(e) => setAddress(e.target.value)}
         placeholder="Address"
         required
         className="w-full p-2 border mb-2 rounded"
-      />  
+        disabled={loading}
+      />
 
       <textarea
         value={info}
         onChange={(e) => setInfo(e.target.value)}
-        placeholder="Additionl Information"
+        placeholder="Additional Information"
         required
         className="w-full p-2 border mb-2 rounded"
+        disabled={loading}
       />
 
       <button
