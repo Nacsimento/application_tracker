@@ -2,15 +2,14 @@ import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request) {
   try {
-    const id = params.id;
+    const url = new URL(request.url);
+    const id = url.pathname.split('/').pop(); 
 
-    if (!ObjectId.isValid(id)) {
+    if (!id || !ObjectId.isValid(id)) {
       return NextResponse.json({ message: 'Invalid ID' }, { status: 400 });
     }
-
-   
 
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB || 'jobboard');
@@ -22,8 +21,11 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     }
 
     return NextResponse.json(applicant);
-  } catch (err) {
-    console.error('GET /api/applicants/[id] error:', err);
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err.message : 'Unknown error';
+    console.error('GET /api/applicants/[id] error:', error);
+    return NextResponse.json({ message: 'Server error', error }, { status: 500 });
   }
 }
+
+
