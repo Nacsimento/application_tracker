@@ -1,5 +1,11 @@
 import EditApplicantForm from "@/components/EditApplicantForm"
 
-export default function EditApplicantPage({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: {
+    id: string
+  }
+}
+
+export default function EditApplicantPage({ params }: PageProps) {
   return <EditApplicantForm id={params.id} />
 }
